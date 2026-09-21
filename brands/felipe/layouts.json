@@ -1,0 +1,68 @@
+{
+  "layouts": [
+    {
+      "id": "cover-photo-headline",
+      "name": "Capa com foto + headline",
+      "useWhen": "A imagem tem força e há espaço negativo suficiente para uma headline curta.",
+      "rules": [
+        "headline grande",
+        "máximo de 3 blocos de texto",
+        "foto dominante",
+        "sem excesso de elementos"
+      ]
+    },
+    {
+      "id": "cover-minimal",
+      "name": "Capa minimalista",
+      "useWhen": "O conceito textual é mais forte que a fotografia.",
+      "rules": [
+        "muito respiro",
+        "uma frase principal",
+        "um único detalhe gráfico opcional"
+      ]
+    },
+    {
+      "id": "content-dark",
+      "name": "Slide interno escuro",
+      "useWhen": "Argumentos mais densos, contraste ou quebra de ritmo.",
+      "rules": [
+        "texto branco",
+        "destaque dourado pontual",
+        "corpo legível",
+        "sem excesso de caixas"
+      ]
+    },
+    {
+      "id": "content-light",
+      "name": "Slide interno claro",
+      "useWhen": "Explicação, lista curta ou conteúdo didático.",
+      "rules": [
+        "fundo off-white",
+        "texto preto",
+        "destaques discretos",
+        "alto respiro"
+      ]
+    },
+    {
+      "id": "argument-block",
+      "name": "Slide de argumento",
+      "useWhen": "Há uma tese principal e uma explicação curta.",
+      "rules": [
+        "headline forte",
+        "bloco de apoio",
+        "uma única ideia central"
+      ]
+    },
+    {
+      "id": "cta-final",
+      "name": "Slide final com CTA",
+      "useWhen": "Último slide do carrossel.",
+      "rules": [
+        "CTA claro",
+        "não parecer anúncio genérico",
+        "assinatura visível",
+        "resumo curto do benefício"
+      ]
+    }
+  ]
+}
