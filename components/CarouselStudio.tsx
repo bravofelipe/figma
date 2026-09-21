@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { toPng } from "html-to-image";
-import { brands, getBrand } from "@/lib/brands";
-import type { Carousel, Slide } from "@/lib/types";
+import type { BrandPackage, Carousel, Slide } from "@/lib/types";
+
+type Props = { brands: BrandPackage[] };
 
 const demo: Carousel = {
   title: "Ultraformer sem acompanhamento",
@@ -11,23 +12,38 @@ const demo: Carousel = {
   slides: [
     { id: "1", eyebrow: "EXPERIÊNCIA DO PACIENTE", title: "Seu paciente fez Ultraformer.\nE saiu achando que não funcionou." },
     { id: "2", title: "O resultado não termina quando o procedimento acaba.", body: "A percepção de valor continua nas semanas seguintes — e depende da forma como a clínica acompanha o paciente." },
-    { id: "3", title: "Sem acompanhamento, ele não sabe o que observar.", body: "Melhora de firmeza, textura e qualidade da pele acontece de forma progressiva. Sem orientação, mudanças sutis passam despercebidas." },
+    { id: "3", title: "Sem acompanhamento, ele não sabe o que observar.", body: "Mudanças progressivas podem passar despercebidas sem orientação e comparação." },
     { id: "4", title: "E quando ele não percebe a evolução...", emphasis: "a conclusão mais fácil é: “não deu resultado”." },
-    { id: "5", title: "Isso não é só um problema clínico.", body: "É um problema de comunicação, processo e experiência do paciente." },
-    { id: "6", title: "Um bom pós-procedimento cria percepção de resultado.", body: "Contato programado, fotos comparativas, orientação sobre prazos e checkpoints ajudam o paciente a enxergar a evolução." },
+    { id: "5", title: "Isso também é comunicação.", body: "A experiência do paciente continua depois do procedimento." },
+    { id: "6", title: "Um bom pós-procedimento cria percepção de resultado.", body: "Contato programado, fotos comparativas, orientação sobre prazos e checkpoints." },
     { id: "7", title: "Sua clínica acompanha o paciente ou apenas executa procedimentos?", cta: "Agende um diagnóstico da sua clínica. Link da BIO." }
   ]
 };
 
-export default function CarouselStudio() {
-  const [brandId, setBrandId] = useState("felipe");
+export default function CarouselStudio({ brands }: Props) {
+  const [brandId, setBrandId] = useState(brands[0]?.id ?? "");
   const [carousel, setCarousel] = useState<Carousel>(demo);
   const [active, setActive] = useState(0);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const brand = useMemo(() => getBrand(brandId), [brandId]);
+  const brand = useMemo(
+    () => brands.find((item) => item.id === brandId) ?? brands[0],
+    [brands, brandId]
+  );
+
+  const [layoutId, setLayoutId] = useState(brand?.layouts[0]?.id ?? "");
+  const [photoCategoryId, setPhotoCategoryId] = useState(brand?.photoCategories[0]?.id ?? "");
+
   const slide = carousel.slides[active];
+  const selectedLayout = brand?.layouts.find((item) => item.id === layoutId);
+
+  function changeBrand(nextId: string) {
+    setBrandId(nextId);
+    const next = brands.find((item) => item.id === nextId);
+    setLayoutId(next?.layouts[0]?.id ?? "");
+    setPhotoCategoryId(next?.photoCategories[0]?.id ?? "");
+  }
 
   function updateSlide(field: keyof Slide, value: string) {
     setCarousel((current) => ({
@@ -39,16 +55,16 @@ export default function CarouselStudio() {
   }
 
   async function generate() {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || !brand) return;
     setLoading(true);
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, brandId })
+        body: JSON.stringify({ prompt, brandId: brand.id, layoutId, photoCategoryId })
       });
-      if (!response.ok) throw new Error("Falha ao gerar carrossel");
       const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || "Falha ao gerar carrossel");
       setCarousel(data);
       setActive(0);
     } catch (error) {
@@ -61,12 +77,7 @@ export default function CarouselStudio() {
   async function exportSlide(index: number) {
     const node = document.getElementById(`slide-${index}`);
     if (!node) return;
-    const dataUrl = await toPng(node, {
-      width: 1080,
-      height: 1350,
-      pixelRatio: 1,
-      cacheBust: true
-    });
+    const dataUrl = await toPng(node, { width: 1080, height: 1350, pixelRatio: 1, cacheBust: true });
     const link = document.createElement("a");
     link.download = `slide-${String(index + 1).padStart(2, "0")}.png`;
     link.href = dataUrl;
@@ -80,19 +91,36 @@ export default function CarouselStudio() {
     }
   }
 
+  if (!brand || !slide) return <main className="app-shell">Nenhuma marca encontrada.</main>;
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
         <div>
           <div className="brand-mark">CAROUSEL STUDIO</div>
           <h1>Carrosséis com identidade, não templates genéricos.</h1>
-          <p className="muted">Crie, revise e exporte carrosséis mantendo as regras de cada marca.</p>
+          <p className="muted">O sistema agora lê o Brand Kit diretamente da pasta /brands.</p>
         </div>
 
         <div className="field">
           <label>Marca</label>
-          <select value={brandId} onChange={(e) => setBrandId(e.target.value)}>
+          <select value={brandId} onChange={(e) => changeBrand(e.target.value)}>
             {brands.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Layout</label>
+          <select value={layoutId} onChange={(e) => setLayoutId(e.target.value)}>
+            {brand.layouts.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
+          </select>
+          {selectedLayout && <span className="muted">{selectedLayout.useWhen}</span>}
+        </div>
+
+        <div className="field">
+          <label>Categoria de foto</label>
+          <select value={photoCategoryId} onChange={(e) => setPhotoCategoryId(e.target.value)}>
+            {brand.photoCategories.map((item) => <option value={item.id} key={item.id}>{item.id}</option>)}
           </select>
         </div>
 
@@ -101,7 +129,7 @@ export default function CarouselStudio() {
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Ex.: Crie um carrossel de 7 slides sobre um paciente que fez Ultraformer, não foi acompanhado e acha que o procedimento não deu resultado."
+            placeholder="Ex.: Crie um carrossel sobre clínicas que aumentam tráfego sem corrigir o processo comercial."
           />
           <button className="primary" onClick={generate} disabled={loading}>
             {loading ? "Gerando..." : "Gerar com IA"}
@@ -109,8 +137,10 @@ export default function CarouselStudio() {
         </div>
 
         <div className="rules">
-          <strong>Regras da marca</strong>
-          {brand.rules.map((rule) => <span key={rule}>• {rule}</span>)}
+          <strong>Assinatura</strong>
+          <span>{brand.signature}</span>
+          <strong>Brand Kit ativo</strong>
+          <span>{brand.positioning}</span>
         </div>
       </aside>
 
@@ -118,48 +148,29 @@ export default function CarouselStudio() {
         <header className="toolbar">
           <div>
             <strong>{carousel.title}</strong>
-            <span>{carousel.slides.length} slides · 1080×1350</span>
+            <span>{carousel.slides.length} slides · {brand.formats.feed.width}×{brand.formats.feed.height}</span>
           </div>
           <button onClick={exportAll}>Exportar todos</button>
         </header>
 
         <div className="stage">
           <div className="preview-wrap">
-            <SlidePreview slide={slide} brandId={brandId} index={active} />
+            <SlidePreview slide={slide} brand={brand} index={active} layoutId={layoutId} />
           </div>
 
           <div className="editor">
-            <div className="field">
-              <label>Sobretítulo</label>
-              <input value={slide.eyebrow ?? ""} onChange={(e) => updateSlide("eyebrow", e.target.value)} />
-            </div>
-            <div className="field">
-              <label>Título</label>
-              <textarea value={slide.title} onChange={(e) => updateSlide("title", e.target.value)} />
-            </div>
-            <div className="field">
-              <label>Texto</label>
-              <textarea value={slide.body ?? ""} onChange={(e) => updateSlide("body", e.target.value)} />
-            </div>
-            <div className="field">
-              <label>Destaque</label>
-              <textarea value={slide.emphasis ?? ""} onChange={(e) => updateSlide("emphasis", e.target.value)} />
-            </div>
-            <div className="field">
-              <label>CTA</label>
-              <textarea value={slide.cta ?? ""} onChange={(e) => updateSlide("cta", e.target.value)} />
-            </div>
+            <div className="field"><label>Sobretítulo</label><input value={slide.eyebrow ?? ""} onChange={(e) => updateSlide("eyebrow", e.target.value)} /></div>
+            <div className="field"><label>Título</label><textarea value={slide.title} onChange={(e) => updateSlide("title", e.target.value)} /></div>
+            <div className="field"><label>Texto</label><textarea value={slide.body ?? ""} onChange={(e) => updateSlide("body", e.target.value)} /></div>
+            <div className="field"><label>Destaque</label><textarea value={slide.emphasis ?? ""} onChange={(e) => updateSlide("emphasis", e.target.value)} /></div>
+            <div className="field"><label>CTA</label><textarea value={slide.cta ?? ""} onChange={(e) => updateSlide("cta", e.target.value)} /></div>
             <button onClick={() => exportSlide(active)}>Exportar este slide</button>
           </div>
         </div>
 
         <div className="thumbs">
           {carousel.slides.map((item, index) => (
-            <button
-              key={item.id}
-              className={index === active ? "thumb active" : "thumb"}
-              onClick={() => setActive(index)}
-            >
+            <button key={item.id} className={index === active ? "thumb active" : "thumb"} onClick={() => setActive(index)}>
               <span>{String(index + 1).padStart(2, "0")}</span>
               <b>{item.title}</b>
             </button>
@@ -170,31 +181,24 @@ export default function CarouselStudio() {
   );
 }
 
-function SlidePreview({ slide, brandId, index }: { slide: Slide; brandId: string; index: number }) {
-  const brand = getBrand(brandId);
+function SlidePreview({ slide, brand, index, layoutId }: { slide: Slide; brand: BrandPackage; index: number; layoutId: string }) {
+  const dark = ["content-dark", "cta-final", "cover-minimal"].includes(layoutId);
+  const background = dark ? brand.colors.dark : brand.colors.offWhite;
+  const foreground = dark ? "#FFFFFF" : brand.colors.dark;
+  const accent = brand.colors.accentGold ?? brand.colors.accentRed ?? brand.colors.dark;
 
   return (
-    <article
-      id={`slide-${index}`}
-      className="slide"
-      style={{
-        background: brand.colors.background,
-        color: brand.colors.foreground,
-        fontFamily: brand.typography.body
-      }}
-    >
-      <div className="slide-topline" style={{ background: brand.colors.accent }} />
+    <article id={`slide-${index}`} className="slide" style={{ background, color: foreground, fontFamily: brand.typography.body }}>
+      <div className="slide-topline" style={{ background: accent }} />
       <div className="slide-content">
-        {slide.eyebrow && <div className="eyebrow" style={{ color: brand.colors.accent }}>{slide.eyebrow}</div>}
-        <h2 style={{ fontFamily: brand.typography.heading }}>{slide.title}</h2>
+        {brand.fixedElements?.topMicrocopy && <div className="eyebrow" style={{ color: accent }}>{brand.fixedElements.topMicrocopy}</div>}
+        {slide.eyebrow && <div className="eyebrow" style={{ color: accent }}>{slide.eyebrow}</div>}
+        <h2 style={{ fontFamily: brand.typography.title }}>{slide.title}</h2>
         {slide.body && <p>{slide.body}</p>}
-        {slide.emphasis && <div className="emphasis" style={{ borderColor: brand.colors.accent }}>{slide.emphasis}</div>}
-        {slide.cta && <div className="cta" style={{ background: brand.colors.accent }}>{slide.cta}</div>}
+        {slide.emphasis && <div className="emphasis" style={{ borderColor: accent }}>{slide.emphasis}</div>}
+        {slide.cta && <div className="cta" style={{ background: accent, color: brand.colors.dark }}>{slide.cta}</div>}
       </div>
-      <footer>
-        <span>{brand.signature}</span>
-        <span>{String(index + 1).padStart(2, "0")}</span>
-      </footer>
+      <footer><span>{brand.signature}</span><span>{String(index + 1).padStart(2, "0")}</span></footer>
     </article>
   );
 }
