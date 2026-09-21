@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   const brand = getBrand(brandId);
 
   const response = await client.responses.create({
-    model: process.env.OPENAI_MODEL || "gpt-5",
+    model: process.env.OPENAI_MODEL || "gpt-5.6-terra",
     input: [
       {
         role: "system",
@@ -57,7 +57,7 @@ Use entre 6 e 9 slides. O CTA deve aparecer apenas no último slide.`
     ]
   });
 
-  const raw = response.output_text.trim().replace(/^\`\`\`json\s*/i, "").replace(/\`\`\`$/i, "");
+  const raw = response.output_text.trim().replace(/^```json\s*/i, "").replace(/```$/i, "");
   try {
     return NextResponse.json(JSON.parse(raw));
   } catch {
