@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
-import { getBrand } from "@/lib/brands";
+import { loadBrandPackage } from "@/lib/brand-loader";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -12,8 +12,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const { prompt, brandId = "felipe" } = await request.json();
-  const brand = getBrand(brandId);
+  const { prompt, brandId, layoutId, photoCategoryId } = await request.json();
+  const brand = await loadBrandPackage(brandId);
+  const selectedLayout = brand.layouts.find((layout) => layout.id === layoutId);
+  const selectedPhotoCategory = brand.photoCategories.find((item) => item.id === photoCategoryId);
 
   const response = await client.responses.create({
     model: process.env.OPENAI_MODEL || "gpt-5.6-terra",
@@ -24,7 +26,7 @@ export async function POST(request: Request) {
           "Você é um estrategista de conteúdo e diretor criativo especializado em carrosséis para Instagram. " +
           "Crie narrativa clara, direta, específica e sem frases genéricas. " +
           "Cada slide deve ter pouco texto, boa progressão e uma única ideia principal. " +
-          "Retorne SOMENTE JSON válido."
+          "Respeite rigorosamente as regras da marca. Retorne SOMENTE JSON válido."
       },
       {
         role: "user",
@@ -33,8 +35,26 @@ export async function POST(request: Request) {
 Pedido:
 ${prompt}
 
+Assinatura:
+${brand.signature}
+
 Regras da marca:
-${brand.rules.join("\n")}
+${brand.rulesMarkdown}
+
+Instruções do agente:
+${brand.agentInstructionsMarkdown}
+
+Layout selecionado:
+${selectedLayout ? selectedLayout.name + " — " + selectedLayout.useWhen : "nenhum"}
+
+Regras do layout:
+${selectedLayout ? selectedLayout.rules.join("\n") : "nenhuma"}
+
+Categoria de foto:
+${selectedPhotoCategory ? selectedPhotoCategory.id + " — " + selectedPhotoCategory.description : "nenhuma"}
+
+Melhor uso da foto:
+${selectedPhotoCategory ? selectedPhotoCategory.bestFor.join(", ") : "nenhum"}
 
 Retorne exatamente este formato JSON:
 {
@@ -52,7 +72,8 @@ Retorne exatamente este formato JSON:
   ]
 }
 
-Use entre 6 e 9 slides. O CTA deve aparecer apenas no último slide.`
+Use entre 6 e 9 slides.
+O CTA deve aparecer apenas no último slide.`
       }
     ]
   });
