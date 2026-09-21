@@ -1,0 +1,52 @@
+{
+  "note": "As fotos originais serão armazenadas em brands/felipe/photos/. Este arquivo descreve como o agente deve escolher cada tipo de foto.",
+  "categories": [
+    {
+      "id": "dark-authority",
+      "description": "Camisa preta, ambiente escuro/corporativo, expressão séria ou neutra.",
+      "bestFor": [
+        "gestão",
+        "vendas",
+        "processo comercial",
+        "erros da clínica",
+        "conteúdo incisivo"
+      ]
+    },
+    {
+      "id": "dark-accessible",
+      "description": "Camisa preta, ambiente corporativo, sorriso ou expressão leve.",
+      "bestFor": [
+        "conteúdo educativo",
+        "aproximação",
+        "histórias",
+        "opinião"
+      ]
+    },
+    {
+      "id": "light-consultive",
+      "description": "Camisa azul, ambiente claro, mesa clara ou fundo neutro.",
+      "bestFor": [
+        "educação",
+        "estratégia",
+        "consultoria",
+        "conteúdo mais leve"
+      ]
+    },
+    {
+      "id": "full-body",
+      "description": "Foto em pé ou enquadramento mais aberto.",
+      "bestFor": [
+        "capas com muito espaço negativo",
+        "headlines grandes",
+        "conteúdo manifesto"
+      ]
+    }
+  ],
+  "selectionRules": [
+    "Nunca modificar rosto, corpo, roupa ou cenário da foto.",
+    "Recorte é permitido, desde que preserve proporções e não distorça.",
+    "Não aplicar filtros fortes.",
+    "Evitar colocar texto sobre o rosto.",
+    "Priorizar áreas de respiro já existentes na fotografia."
+  ]
+}
