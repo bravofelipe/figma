@@ -1,0 +1,50 @@
+{
+  "id": "felipe",
+  "name": "Felipe Bravo",
+  "signature": "Felipe Bravo | Clínicas de estética",
+  "niche": "Clínicas de estética",
+  "positioning": "Estruturação operacional de vendas para clínicas de estética",
+  "tone": [
+    "claro",
+    "direto",
+    "racional",
+    "premium",
+    "humano"
+  ],
+  "typography": {
+    "title": "Montserrat",
+    "body": "Inter",
+    "titleWeights": [
+      700,
+      800
+    ],
+    "bodyWeights": [
+      400,
+      500
+    ]
+  },
+  "colors": {
+    "dark": "#0B0B0D",
+    "graphite": "#1A1C1F",
+    "charcoal": "#2A2D31",
+    "offWhite": "#F7F7F5",
+    "softGray": "#C9C9C4",
+    "accentRed": "#B3261E",
+    "accentGold": "#C8A96B"
+  },
+  "formats": {
+    "feed": {
+      "width": 1080,
+      "height": 1350
+    },
+    "story": {
+      "width": 1080,
+      "height": 1920
+    }
+  },
+  "fixedElements": {
+    "signature": "Felipe Bravo | Clínicas de estética",
+    "topMicrocopy": "Estratégias para clínicas de estética",
+    "decorativeDetail": "linha vertical fina com ponto dourado, apenas quando ajudar a composição"
+  }
+}
